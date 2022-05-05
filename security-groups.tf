@@ -21,5 +21,19 @@ resource "aws_security_group" "my_private_app_sg" {
     protocol    = "tcp"
     cidr_blocks = ["192.168.0.0/16"] # 0.0.0.0/0
   }
-
+  ingress {
+    description = "PING to bastion"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["192.168.0.0/24"]
+  }
+  # OUTBOUND CONNECTIONS
+  egress {
+    description = "Allow access to the world"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" # TCP + UDP
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
