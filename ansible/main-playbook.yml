@@ -1,0 +1,47 @@
+---
+- hosts: syslog
+  become: true
+  tasks: 
+
+    - name: Import a key from a url
+      rpm_key:
+        state: present
+        key: https://packages.elastic.co/GPG-KEY-elasticsearch
+
+    - name: Create New FileBeat YAML File
+      file:
+        path: /etc/filebeat/filebeat.yml
+        state: touch
+  - name: Install Filebeat on syslog 
+      apt:
+        name: filebeat
+        update_cache: yes
+
+
+    - name: Enabling Filebeat
+      systemd:
+        name: filebeat
+        enabled: yes
+
+    - name: Add FileBeat YAML Configuration
+      blockinfile:
+      copy:
+        src: "templates/filebeat.yml.j2"
+        dest: "/etc/filebeat/filebeat.yml"
+        block: |
+            filebeat.inputs:
+            - type: log
+              paths:
+              - /var/log/*
+            output.logstash:
+              hosts: 192.168.2.51
+      
+    - name: Starting Filebeat
+      systemd:
+        name: filebeat
+        state: started
+        
+    - name: Start Filebeat service 
+      service:
+        name: filebeat
+        state: started
